@@ -4,39 +4,38 @@ const Schema = mongoose.Schema;
 
 const WorkSchema = new Schema({
     title: {
-        type: String
+        type: String,
+        required: true
     },
     body: {
-        type: String
+        type: String,
+        required: true
     },
     authorId: {
         type: String
     },
     category: {
-        type: String
-    },
-    title: {
-        type: String
+        type: String,
+        required: true
     },
     tags: [{
         type: String
     }],
     targetAudience: {
-        type: String
+        type: String,
+        required: true
     },
     language: {
-        type: String
+        type: String,
+        required: true
     },
     rating: {
-        type: String
+        type: String,
+        required: true
     },
     likesBy: [{
         type: String,
     }],
-    likesBy: {
-        type: Number,
-        min: 0
-    },
     comments: [{
         user_id: {
             type: String
