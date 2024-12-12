@@ -48,7 +48,7 @@ const UserSchema = new Schema({
         type: String
     }],
     workId: [{
-        type: String
+        type: mongoose.Schema.Types.ObjectId
     }]
 }, {
     timestamps: true

@@ -12,7 +12,7 @@ const WorkSchema = new Schema({
         required: true
     },
     authorId: {
-        type: String
+        type: mongoose.Schema.Types.ObjectId
     },
     category: {
         type: String,

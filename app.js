@@ -8,6 +8,7 @@ const User = require('./server/models/UserSchema');
 const authenticateUser = require('./server/middleware/authenticateUser');
 const logoutUser = require('./server/middleware/logoutUser');
 const bcrypt = require('bcrypt');
+const ObjectId = require("mongodb").ObjectId
 
 
 
@@ -65,8 +66,8 @@ app.post('/api/auth/register', async (req, res) => {
 app.post('/api/auth/login', async (req, res) => {
     try{
         const { email, password } = req.body;
-        const payload = { email, password };
         const user = await User.findOne({ email: email });
+        const payload = { _id: user._id, email, password };
 
         if (user) {
             if (email && await bcrypt.compare(password, user.password)) {
@@ -101,7 +102,7 @@ app.get('/api/work', authenticateUser, async (req, res) => {
     try{
         const Works = await Work.find();
         if (Works) {
-            return res.send(Works);
+            return res.json(Works);
         }
         res.status(500).json({ message: 'Failed to query data' })
     }
@@ -117,7 +118,7 @@ app.get('/api/work/:id', authenticateUser, async (req, res) => {
         const id = req.params.id;
         const Works = await Work.findOne({ _id: id });
         if (Works) {
-            return res.send(Works);
+            return res.json(Works);
         }
         res.status(500).json({ message: 'Failed to query data' })
     }
@@ -130,12 +131,15 @@ app.get('/api/work/:id', authenticateUser, async (req, res) => {
 // ADDING ONE WORK
 app.post('/api/work', authenticateUser, async (req, res) => {
     try{
+        const authorId = req.user._id;
         const { title, body, category, tags, targetAudience, language, rating, image } = req.body;
-        const newWork = { title, body, category, tags, targetAudience, language, rating, image };
+        const newWork = { authorId, title, body, category, tags, targetAudience, language, rating, image };
 
         const Works = await Work.create(newWork);
 
-        if (Works) {
+        const updateUser_WorkId = await User.updateOne({ _id: authorId }, { $push: {workId: Works._id }})
+
+        if (updateUser_WorkId) {
             return res.status(201).json({ message: 'Data stored successfull' });
         }
         res.status(500).json({ message: 'Failed to store data' });
@@ -177,6 +181,43 @@ app.patch('/api/work/:id', authenticateUser, async (req, res) => {
             return res.status(201).json({ message: 'Data updated successfull' });
         }
         res.status(500).json({ message: 'Failed to update data' });
+    }
+    catch (err) {
+        console.error(err);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+})
+
+// GET USER's WORKS BY ID
+app.get('/api/user-with-works', authenticateUser, async (req, res) => {
+    try{
+        const idUser = req.user._id;
+        const result = await User.aggregate([
+            {
+                $match: {
+                    _id: new ObjectId(`${idUser}`)
+                }
+            },
+            {
+                $project: {
+                    name: 1,
+                    location: 1,
+                }
+            },
+            {
+                $lookup: {
+                    from: 'works',
+                    localField: '_id',
+                    foreignField: 'authorId',
+                    as: 'works'
+                }
+            }
+        ])
+
+        if (result) {
+            return res.status(200).json(result);
+        }
+        res.status(404).json({ message: 'No data found' });
     }
     catch (err) {
         console.error(err);
