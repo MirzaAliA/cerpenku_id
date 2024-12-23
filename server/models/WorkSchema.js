@@ -8,8 +8,14 @@ const WorkSchema = new Schema({
         required: true
     },
     body: [{
-        type: String,
-        required: true
+        title_part: {
+            type: String,
+            required: true
+        },
+        content: {
+            type: String,
+            required: true
+        }
     }],
     authorId: {
         type: mongoose.Schema.Types.ObjectId
