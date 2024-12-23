@@ -7,10 +7,10 @@ const WorkSchema = new Schema({
         type: String,
         required: true
     },
-    body: {
+    body: [{
         type: String,
         required: true
-    },
+    }],
     authorId: {
         type: mongoose.Schema.Types.ObjectId
     },
