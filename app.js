@@ -61,13 +61,33 @@ app.post('/api/auth/register', async (req, res) => {
     }
 })
 
+// EDIT ACCOUNT INFO
+app.patch('/api/auth/edit-account', authenticateUser, async (req, res) => {
+    try{
+        const userEmail = req.user.email;
+        
+        const { description, location, profileImage, backgroundImage } = req.body;
+        const payload = { description: description, location: location, profileImage: profileImage, backgroundImage: backgroundImage};
+        const userUpdatedAccount = await User.updateOne({ email: userEmail }, payload);
+
+        if(userUpdatedAccount) {
+            return res.status(201).json({ message: 'User info updated successfull' });
+        }
+        return res.status(500).json({ message: 'Failed to update User info'});
+    }
+    catch (err) {
+        console.error(err);
+        return res.status(500).json({ message: 'Internal server error'});
+    }
+})
+
 
 // LOGIN ACCOUNT
 app.post('/api/auth/login', async (req, res) => {
     try{
         const { email, password } = req.body;
         const user = await User.findOne({ email: email });
-        const payload = { _id: user._id, email, password };
+        const payload = { _id: user._id, username: user.username, email, password };
 
         if (user) {
             if (email && await bcrypt.compare(password, user.password)) {
@@ -104,11 +124,53 @@ app.get('/api/work', authenticateUser, async (req, res) => {
         if (Works) {
             return res.json(Works);
         }
-        res.status(500).json({ message: 'Failed to query data' })
+        res.status(500).json({ message: 'Failed to load data' })
     }
     catch (err) {
         console.error(err);
         res.status(500).json({ message: 'Internal server error' })
+    }
+})
+
+// HOME PAGE
+// app.get('/api/home', async (req, res) => {
+//     try{
+        
+//     }
+//     catch (err) {
+//         console.error(err);
+//     }
+// })
+
+// GET WORKS FILTER BY GENRE
+app.get('/api/genre/:genre', async (req, res) => {
+    try{
+        const genre = req.params.genre;
+        const workByGenre = await Work.aggregate([
+            {
+                $match: {
+                    category: genre
+                }
+            }
+        ])
+        if (workByGenre) {
+            return res.status(200).json(workByGenre);
+        }
+        res.status(500).json({ message: 'Failed to load data' })
+    }
+    catch (err) {
+        console.error(err);
+        res.status(500).json({ message: 'Internal server error' })
+    }
+})
+
+// GET WORKS FILTER BY SEARCH TITLE
+app.get('/api/search', async (req, res) => {
+    try{
+        console.log(req.query.query)
+    }
+    catch (err) {
+        console.error(err);
     }
 })
 
@@ -188,7 +250,10 @@ app.patch('/api/work/:id', authenticateUser, async (req, res) => {
     }
 })
 
-// GET USER's WORKS BY ID
+// GET USER's INFO
+app.get('/api/user/:username')
+
+// GET ALL USER's WORKS
 app.get('/api/user-with-works', authenticateUser, async (req, res) => {
     try{
         const idUser = req.user._id;
@@ -224,6 +289,8 @@ app.get('/api/user-with-works', authenticateUser, async (req, res) => {
         res.status(500).json({ message: 'Internal server error' });
     }
 })
+
+
 
 app.get('/api/home', authenticateUser, async (req, res) => {
     res.send('You are accessing homepage using token')
