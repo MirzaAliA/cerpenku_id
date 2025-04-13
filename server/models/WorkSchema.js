@@ -7,8 +7,8 @@ const WorkSchema = new Schema({
         type: String,
         required: true
     },
-    body: [{
-        title_part: {
+    body: {
+        titlePart: {
             type: String,
             required: true
         },
@@ -16,7 +16,7 @@ const WorkSchema = new Schema({
             type: String,
             required: true
         }
-    }],
+    },
     authorId: {
         type: mongoose.Schema.Types.ObjectId
     },

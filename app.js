@@ -7,7 +7,7 @@ const Work = require('./server/models/WorkSchema');
 const User = require('./server/models/UserSchema');
 const authenticateUser = require('./server/middleware/authenticateUser');
 const logoutUser = require('./server/middleware/logoutUser');
-const bcrypt = require('bcrypt');
+const bcrypt = require('bcryptjs');
 const ObjectId = require("mongodb").ObjectId
 
 
@@ -118,7 +118,9 @@ app.post('/api/auth/logout', logoutUser, async (req, res) => {
 
 
 // GET ALL WORKS
-app.get('/api/work', authenticateUser, async (req, res) => {
+app.get('/api/work', async (req, res) => {
+    res.header("Access-Control-Allow-Origin", "*");
+    res.header("Access-Control-Allow-Headers", "X-Requested-With");
     try{
         const Works = await Work.find();
         if (Works) {
@@ -194,8 +196,8 @@ app.get('/api/work/:id', authenticateUser, async (req, res) => {
 app.post('/api/work', authenticateUser, async (req, res) => {
     try{
         const authorId = req.user._id;
-        const { title, body, category, tags, targetAudience, language, rating, image } = req.body;
-        const newWork = { authorId, title, body, category, tags, targetAudience, language, rating, image };
+        const { title, titlePart, content, category, tags, targetAudience, language, rating, image } = req.body;
+        const newWork = { authorId, title, body: { titlePart: titlePart, content: content }, category, tags, targetAudience, language, rating, image };
 
         const Works = await Work.create(newWork);
 
@@ -232,8 +234,8 @@ app.delete('/api/work/:id', authenticateUser, async (req, res) => {
 // UPDATE ONE WORK BY ID
 app.patch('/api/work/:id', authenticateUser, async (req, res) => {
     try{
-        const { title, body, category, tags, targetAudience, language, rating, image } = req.body;
-        const updatedWork = { title, body, category, tags, targetAudience, language, rating, image };
+        const { title, titlePart, content, category, tags, targetAudience, language, rating, image } = req.body;
+        const updatedWork = { title, titlePart, content, category, tags, targetAudience, language, rating, image };
 
         const id = req.params.id;
 
